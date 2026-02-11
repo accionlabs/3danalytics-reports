@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { panelMap } from '../data/panelMap.ts'
 import { ChartView } from '../components/ChartView.tsx'
@@ -25,6 +25,19 @@ export function PanelPage() {
     },
     [],
   )
+
+  // Listen for analytics:click from the parent's overlay and simulate the
+  // click at the given coordinates so chart drill-down still works.
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      if (event.data?.type !== 'analytics:click') return
+      const { x, y } = event.data as { x: number; y: number }
+      const el = document.elementFromPoint(x, y) as HTMLElement | null
+      if (el) el.click()
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [])
 
   if (!panel) {
     return (
